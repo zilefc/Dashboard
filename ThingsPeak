@@ -1,0 +1,51 @@
+#include <ESP8266WiFi.h>
+#include "ThingSpeak.h"
+
+const char* ssid = "REPLACE_WITH_YOUR_SSID"; 
+const char* password = "REPLACE_WITH_YOUR_PASSWORD";
+
+WiFiClient  client;
+
+unsigned long myChannelNumber = X;
+const char * myWriteAPIKey = "XXXXXXXXXXXXXXXX";
+
+unsigned long lastTime = 0;
+unsigned long timerDelay = 30000;
+
+String myStatus = "";
+
+void setup() {
+  Serial.begin(115200);
+  
+  WiFi.mode(WIFI_STA);   
+  ThingSpeak.begin(client);
+}
+
+void loop() {
+  if ((millis() - lastTime) > timerDelay) {
+    
+    if(WiFi.status() != WL_CONNECTED){
+      Serial.print("Conectando ao WiFi");
+      while(WiFi.status() != WL_CONNECTED){
+        WiFi.begin(ssid, password); 
+        delay(5000);     
+      } 
+      Serial.println("\nConectado.");
+    }
+
+    // Set dos valores nos campos
+    ThingSpeak.setField(1, ValorDoSensor);
+    ThingSpeak.setField(2, ValorDoSensor);
+    ThingSpeak.setField(3, ValorDoSensor);
+
+    int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+
+    if(x == 200){
+      Serial.println("Actualizado com sucesso.");
+    }
+    else{
+      Serial.println("Falha na actualizacao. HTTP code " + String(x));
+    }
+    lastTime = millis();
+  }
+}
